@@ -87,14 +87,14 @@ app.post('/fly', function (req, res) {
       var country_position;
       switch(webhookBody.order.billing_address.country) {
           case "AU":
-            country_position = 4;
+            country_position = 1;
             break;
           case "US":
-            country_position = 5;
+            country_position = 2;
             break;
           case "ZA":
           default:
-            country_position = 6;
+            country_position = 3;
             break;
       }
 
@@ -109,7 +109,9 @@ app.post('/fly', function (req, res) {
 
             mission.takeoff()
                 .zero()
-                .wait(2500)
+                .hover(2500)
+
+            // Drone going to item now!
 
             /**
              * The drone can go too fast and not very accurate if
@@ -122,13 +124,25 @@ app.post('/fly', function (req, res) {
              */
             var i;
             for (i=0; i < item_position; i++) {
-                mission.right(1);
+                // Drone going right 1m!
+                mission.right(1)
             }
-            mission.hover(2000)
-                .land()
-                .wait(10000)
-                .takeoff()
-                .zero()
+
+            // Drone at item, continuing in 5 seconds!
+            mission.hover(5000)
+
+            // Drone going back to base/start now!
+
+            /**
+             * Go back to 'home'.
+             */
+            var u;
+            for (u=0; u < item_position; u++) {
+                // Drone going to base 1m left now!
+                mission.left(1)
+            }
+
+            // Drone at base, going to go country now!
 
             /**
              * We determine customer location by country above,
@@ -137,13 +151,19 @@ app.post('/fly', function (req, res) {
              */
             var o;
             for (o=0; o < country_position; o++) {
-                mission.left(1);
+                // Drone going left 1m!
+                mission.left(1)
             }
+
+            // Drone at country, landing now!
 
             mission.hover(2000)
                 .land();
 
+            // Drone landed and done!
+
             // mission go!
+            var d = new Date();
             mission.run(function (err, result) {
                 if (err) {
                     console.trace("Oops, something bad happened: %s", err.message);
